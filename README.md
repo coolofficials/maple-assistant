@@ -13,7 +13,7 @@
 
 ## 사용법
 
-1. Windows에서 서명되지 않은 설치 프로그램 실행 시 OS의 보안 경고가 표시될 수 있습니다. 배포 전 출처와 해시를 확인하세요.
+1. Windows 설치 프로그램은 코드 서명되지 않았으므로 SmartScreen 등 OS 보안 경고가 표시될 수 있습니다. 실행 전 공개 Release와 SHA-256을 확인하세요.
 2. 재획 알림 탭에서 스킬, 기본 쿨타임(초), 사용 캐릭터를 선택해 추가합니다. 실제 게임에서 확인한 실효 쿨타임은 override에 입력하세요. 반복 알림 스킬을 직접 선택한 뒤 시작합니다. 실행 중 캐릭터/스킬 선택을 바꿔도 현재 타이머는 시작 당시 스킬로 유지되며 화면 선택은 다음 시작에 적용됩니다. 일시정지/재개는 남은 시간을 유지하고 음소거는 시스템 알림만 끕니다. 재동기화는 실행 중 스킬의 실효 주기로 main-process 반복 알림을 다시 예약합니다.
 3. 메할일에 계정 공통/현재 캐릭터 항목을 추가하고 반복 주기와 KST 시각을 선택합니다. 체크는 해당 reset period에만 유지됩니다.
 4. 화면 PiP에서 OS 캡처 소스 목록을 불러와 대상을 선택한 뒤 명시적으로 시작합니다. 끝나면 캡처 중지 버튼을 누릅니다. 허용되는 창 및 캡처 품질은 OS/드라이버에 따라 다릅니다.
@@ -37,7 +37,15 @@ npm run typecheck
 npm run build
 ```
 
-Windows 설치 파일은 Windows 환경에서 `npm run dist:win`을 실행해 생성합니다 (`release/`). GitHub Actions의 `.github/workflows/release.yml`은 `v*` 태그에서 Windows NSIS 설치 파일을 빌드하고 GitHub Release에 첨부하도록 준비되어 있습니다. 현재 저장소에는 remote를 설정하지 않았으며 원격 게시를 수행하지 않았습니다.
+Windows 설치 파일은 Windows 환경에서 `npm run dist:win`을 실행해 생성합니다 (`release/`). GitHub Actions의 [Windows release workflow](https://github.com/coolofficials/maple-assistant/actions/workflows/release.yml)는 `v*` 태그에서 Windows NSIS 설치 파일을 빌드하고 GitHub Release에 첨부합니다. v0.1.0의 Windows Actions 빌드는 성공했지만 실제 Windows 장치에서 설치하거나 메이플스토리와 함께 플레이하는 검증은 수행하지 않았습니다.
+
+## 공개 다운로드
+
+- GitHub 저장소: https://github.com/coolofficials/maple-assistant
+- v0.1.0 Release 및 SHA-256/provenance: https://github.com/coolofficials/maple-assistant/releases/tag/v0.1.0
+- Windows 설치 파일: [Maple.Assistant.Setup.0.1.0.exe](https://github.com/coolofficials/maple-assistant/releases/download/v0.1.0/Maple.Assistant.Setup.0.1.0.exe)
+
+설치 파일은 코드 서명되지 않았습니다. Windows 보안 경고가 표시될 수 있으므로 출처와 Release에 게시된 SHA-256을 확인한 뒤 실행하세요. Release의 Actions 빌드 성공은 실제 Windows 설치 또는 메이플스토리 플레이 호환성 검증을 의미하지 않습니다.
 
 `npm run smoke:dev-cold`는 `dist-electron` 산출물이 없는 상태에서 실제 `npm run dev`를 시작하여 TypeScript/watch/Vite 준비 후 editor window가 로드되는지 확인합니다. `npm run smoke:startup`은 Vite production asset 상대 경로와 editor/observer 창의 JS/CSS startup을 Electron runtime에서 점검합니다. `npm run smoke:navigation:dev`와 `npm run smoke:navigation:file`은 각 내부 탭 링크를 클릭한 후 capture 목록/선택/start/stop 및 notification schedule/cancel IPC를 실제 Electron dev/file 모드에서 검사합니다. OS 화면 녹화 권한이 허용된 개발 장치에서는 `npm run smoke:capture`로 실제 Electron display-capture API도 별도 점검할 수 있습니다. `npm run smoke:notification`은 editor를 숨기고 main-process deadline 만료와 native notification 표시 호출을 확인합니다. OS 화면 목록/권한이 없는 headless 또는 제한된 장치에서는 capture smoke가 실패할 수 있습니다.
 
