@@ -1,0 +1,56 @@
+{
+  "name": "maple-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "메이플스토리 플레이 보조용 로컬 데스크톱 앱",
+  "main": "dist-electron/main.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npm run build:electron && concurrently -k \"tsc -p tsconfig.electron.json --watch --preserveWatchOutput\" \"vite --host 127.0.0.1 --strictPort\" \"wait-on http://127.0.0.1:5173 dist-electron/main.js dist-electron/preload.js && electron .\"",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "test": "vitest run",
+    "smoke:startup": "npm run build && electron . --smoke-file-load --smoke-test",
+    "smoke:navigation:file": "npm run build && electron . --smoke-file-load --smoke-test --smoke-navigation",
+    "smoke:navigation:dev": "npm run build:electron && concurrently -k --success first \"wait-on http://127.0.0.1:5173 dist-electron/main.js dist-electron/preload.js && electron . --smoke-test --smoke-navigation\" \"tsc -p tsconfig.electron.json --watch --preserveWatchOutput\" \"vite --host 127.0.0.1 --strictPort\"",
+    "smoke:capture": "npm run build && electron . --smoke-file-load --smoke-test --smoke-capture",
+    "smoke:notification": "npm run build && electron . --smoke-file-load --smoke-test --smoke-notification",
+    "smoke:dev": "npm run build:electron && concurrently -k --success first \"wait-on http://127.0.0.1:5173 dist-electron/main.js dist-electron/preload.js && electron . --smoke-test\" \"tsc -p tsconfig.electron.json --watch --preserveWatchOutput\" \"vite --host 127.0.0.1 --strictPort\"",
+    "smoke:dev-cold": "node scripts/dev-cold-smoke.mjs",
+    "build": "npm run typecheck && vite build && tsc -p tsconfig.electron.json",
+    "dist:win": "npm run build && electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "concurrently": "^9.1.2",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.0.12",
+    "jsdom": "^30.1.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.2",
+    "vitest": "^5.0.3",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "kr.mapleassistant.desktop",
+    "productName": "Maple Assistant",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
