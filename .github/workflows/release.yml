@@ -16,8 +16,31 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run typecheck
-      - run: npm run dist:win
-      - uses: softprops/action-gh-release@v2
+      - run: npm run dist:win -- --publish never
+      - name: Prepare checksum and build provenance
+        shell: pwsh
+        run: |
+          $version = (node -p "require('./package.json').version").Trim()
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw "Tag must match package version v$version" }
+          $installer = "release/Maple Assistant Setup $version.exe"
+          if (-not (Test-Path -LiteralPath $installer)) { throw "Installer not found: $installer" }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $installer).Hash.ToLowerInvariant()
+          $installerName = Split-Path -Leaf $installer
+          "$hash  $installerName" | Set-Content -Encoding ascii -LiteralPath "$installer.sha256"
+          $provenance = [ordered]@{
+            subject = @{ name = $installerName; sha256 = $hash }
+            source = @{ repository = $env:GITHUB_REPOSITORY; ref = $env:GITHUB_REF; commit = $env:GITHUB_SHA }
+            workflow = @{ path = $env:GITHUB_WORKFLOW_REF; runId = $env:GITHUB_RUN_ID; runAttempt = $env:GITHUB_RUN_ATTEMPT; runUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" }
+            builder = @{ runner = $env:RUNNER_OS }
+          }
+          $provenance | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 -LiteralPath "$installer.provenance.json"
+      - name: Create draft GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: release/*.exe
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            release/*.exe
+            release/*.exe.sha256
+            release/*.exe.provenance.json
           body_path: RELEASE_NOTES.md
